@@ -274,8 +274,58 @@ class Tx_Solr_Search implements t3lib_Singleton {
 		return $this->getResponse()->response;
 	}
 
-	public function getResultDocuments() {
-		return $this->getResponseBody()->docs;
+	public function getResultDocuments($applyHtmlSpecialChars = true) {
+		if(!$applyHtmlSpecialChars) {
+			return $this->getResponseBody()->docs;
+		}
+
+		// fields that should be skipped in the call of htmlspecialchars
+		return $this->applyHtmlSpecialCharsOnAllFields($this->getResponseBody()->docs);
+	}
+
+	/**
+	 * This method is used to apply htmlspecialchars on all document fields that
+	 * are not configured to be secure. Secure mean that we know where the content is comming from.
+	 *
+	 * @param array $docs
+	 * @return array
+	 */
+	protected function applyHtmlSpecialCharsOnAllFields(array $docs) {
+		$secureFields = array();
+
+		foreach($docs as $key => $doc) {
+			$fieldNames = $doc->getFieldNames();
+			foreach($fieldNames as $fieldName) {
+				if(in_array($fieldName, $secureFields) ) {
+					// we skip this field, since it was marked as secure
+					continue;
+				}
+
+				$doc->{$fieldName} = $this->applyHtmlSpecialCharsOnSingleFieldValue($doc->{$fieldName});
+			}
+
+			$docs[$key] = $doc;
+		}
+
+		return $docs;
+	}
+
+	/**
+	 * Applies htmlspecialchars on all items of an array of a single value.
+	 *
+	 * @param $fieldValue
+	 * @return array|string
+	 */
+	protected function applyHtmlSpecialCharsOnSingleFieldValue($fieldValue) {
+		if(is_array($fieldValue)) {
+			foreach($fieldValue as $key => $fieldValueItem) {
+				$fieldValue[$key] = htmlspecialchars($fieldValueItem, NULL, NULL, FALSE);
+			}
+		} else {
+			$fieldValue = htmlspecialchars($fieldValue, NULL, NULL, FALSE);
+		}
+
+		return $fieldValue;
 	}
 
 	/**

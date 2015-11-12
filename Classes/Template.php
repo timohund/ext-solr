@@ -298,34 +298,6 @@ class Tx_Solr_Template {
 	}
 
 	/**
-	 * Escapes a document's content field taking into account the wrap setting
-	 * for highlighting keywords
-	 *
-	 * @param string $content content field value
-	 * @return string escaped content
-	 */
-	protected function escapeResultContent($content) {
-
-		$content = htmlspecialchars($content, NULL, NULL, FALSE);
-
-		$configuration = Tx_Solr_Util::getSolrConfiguration();
-		$highlightingWrap = $configuration['search.']['results.']['resultsHighlighting.']['wrap'];
-		$highlightingWrap = explode('|', $highlightingWrap);
-
-		$pattern = '/'
-			. htmlspecialchars($highlightingWrap[0], NULL, NULL, FALSE)
-			. '(.+?)'
-			. str_replace('/', '\/', htmlspecialchars($highlightingWrap[1]))
-			. '/is';
-		$replacement = $highlightingWrap[0] . '$1' . $highlightingWrap[1];
-
-		$content = preg_replace($pattern, $replacement, $content);
-
-
-		return $content;
-	}
-
-	/**
 	 * cleans the template from non-replaced markers and subparts
 	 *
 	 * @return void
@@ -515,14 +487,6 @@ class Tx_Solr_Template {
 		if (count($foundMarkers)) {
 			$iterationCount = 0;
 			foreach ($loopVariables as $value) {
-				// escape content and title
-				if (isset($value['content'])) {
-					$value['content'] = $this->escapeResultContent($value['content']);
-				}
-				if (isset($value['title'])) {
-					$value['title'] = htmlspecialchars($value['title'], NULL, NULL, FALSE);
-				}
-
 				$resolvedMarkers = $this->resolveVariableMarkers($foundMarkers, $value);
 				$resolvedMarkers['LOOP_CURRENT_ITERATION_COUNT'] = ++$iterationCount;
 
