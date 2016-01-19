@@ -2,6 +2,7 @@
 
 SCRIPTPATH=$( cd $(dirname $0) ; pwd -P )
 EXTENSION_ROOTPATH="$SCRIPTPATH/../../"
+${SOLR_INSTALL_DIR:="/opt/solr-tomcat"}
 
 if [ -z $TYPO3_VERSION ]; then
 	echo "Must set env var TYPO3_VERSION (e.g. dev-master or ~7.6.0)"
@@ -25,10 +26,10 @@ mkdir -p $TYPO3_PATH_WEB/uploads $TYPO3_PATH_WEB/typo3temp
 
 
 # Setup Solr Using our install script
-if [ ! -d "/opt/solr-tomcat/" ]; then
+if [ ! -d $SOLR_INSTALL_DIR ]; then
     sudo ${EXTENSION_ROOTPATH}Resources/Install/install-solr-tomcat.sh
 else
-    cd /opt/solr-tomcat/
+    cd $SOLR_INSTALL_DIR
     ls -lra
     ./tomcat/bin/startup.sh
 fi

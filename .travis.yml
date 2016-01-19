@@ -5,14 +5,13 @@ php:
   - 5.6
   - 7.0
 
-sudo: true
-
 env:
   global:
     - TYPO3_DATABASE_NAME="typo3_ci"
     - TYPO3_DATABASE_HOST="localhost"
     - TYPO3_DATABASE_USERNAME="root"
     - TYPO3_DATABASE_PASSWORD=""
+    - SOLR_INSTALL_DIR=$HOME/solr-tomcat
   matrix:
     - TYPO3_VERSION="~7.6.0"
     - TYPO3_VERSION="dev-master"
@@ -35,4 +34,4 @@ after_script: Tests/Build/cleanup.sh
 cache:
   directories:
     - $HOME/.composer/cache
-    - /opt/solr-tomcat
+    - $HOME/solr-tomcat
