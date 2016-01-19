@@ -12,6 +12,10 @@ EXT_SOLR_VERSION=3.2
 SOLR_TYPO3_PLUGIN_VERSION=1.3.0
 JAVA_VERSION=7
 
+if [ -z $SOLR_INSTALL_DIR ]; then
+	SOLR_INSTALL_DIR="/opt/solr-tomcat"
+fi
+
 GITBRANCH_PATH="release-$EXT_SOLR_VERSION.x"
 
 APACHE_MIRROR="http://mirror.dkd.de/apache/"
@@ -217,8 +221,8 @@ fi
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-mkdir -p /opt/solr-tomcat
-cd /opt/solr-tomcat/
+mkdir -p ${INSTALL_DIR}
+cd ${INSTALL_DIR}
 
 cecho "Downloading Apache Tomcat $TOMCAT_VERSION" $green
 TOMCAT_MAINVERSION=`echo "$TOMCAT_VERSION" | cut -d'.' -f1`
@@ -269,7 +273,7 @@ do
 	wgetresource Solr/typo3cores/conf/$LANGUAGE/_schema_analysis_stopwords_$LANGUAGE.json
 done
 
-# download general configuration in /opt/solr-tomcat/solr/typo3cores/conf/
+# download general configuration in ${INSTALL_DIR}/solr/typo3cores/conf/
 cecho "Downloading general configruation" $green
 cd $SOLRDIR/typo3cores/conf
 wgetresource Solr/typo3cores/conf/currency.xml
@@ -278,7 +282,7 @@ wgetresource Solr/typo3cores/conf/general_schema_fields.xml
 wgetresource Solr/typo3cores/conf/general_schema_types.xml
 wgetresource Solr/typo3cores/conf/solrconfig.xml
 
-# download core configuration file solr.xml in /opt/solr-tomcat/solr/
+# download core configuration file solr.xml in ${INSTALL_DIR}/solr/
 cd ../..
 rm solr.xml
 wgetresource Solr/solr.xml
@@ -293,13 +297,13 @@ rm README.txt
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 cecho "Configuring Apache Tomcat." $green
-cd /opt/solr-tomcat/tomcat/conf
+cd ${INSTALL_DIR}/tomcat/conf
 
 rm server.xml
 
 wgetresource Tomcat/server.xml
 
-cd /opt/solr-tomcat/
+cd ${INSTALL_DIR}
 mkdir -p tomcat/conf/Catalina/localhost
 cd tomcat/conf/Catalina/localhost
 
@@ -307,7 +311,7 @@ cd tomcat/conf/Catalina/localhost
 wgetresource Tomcat/solr.xml
 
 # copy libs
-cd /opt/solr-tomcat/
+cd ${INSTALL_DIR}
 cp -r solr-$SOLR_VERSION/dist solr/
 cp -r solr-$SOLR_VERSION/contrib solr/
 
@@ -321,7 +325,7 @@ wget --progress=bar:force https://github.com/TYPO3-Solr/solr-typo3-plugin/releas
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 cecho "Setting permissions." $green
-cd /opt/solr-tomcat/
+cd ${INSTALL_DIR}
 chmod a+x tomcat/bin/*
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
