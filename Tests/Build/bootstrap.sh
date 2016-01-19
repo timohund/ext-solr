@@ -2,7 +2,10 @@
 
 SCRIPTPATH=$( cd $(dirname $0) ; pwd -P )
 EXTENSION_ROOTPATH="$SCRIPTPATH/../../"
-${SOLR_INSTALL_DIR:=/opt/solr-tomcat}
+
+if [ -z "$SOLR_INSTALL_DIR" ]; then
+	SOLR_INSTALL_DIR="/opt/solr-tomcat";
+fi
 
 if [ -z $TYPO3_VERSION ]; then
 	echo "Must set env var TYPO3_VERSION (e.g. dev-master or ~7.6.0)"
