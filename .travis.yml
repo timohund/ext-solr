@@ -35,3 +35,4 @@ after_script: Tests/Build/cleanup.sh
 cache:
   directories:
     - $HOME/.composer/cache
+    - /opt/solr-tomcat/

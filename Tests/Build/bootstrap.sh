@@ -25,4 +25,10 @@ mkdir -p $TYPO3_PATH_WEB/uploads $TYPO3_PATH_WEB/typo3temp
 
 
 # Setup Solr Using our install script
-sudo ${EXTENSION_ROOTPATH}Resources/Install/install-solr-tomcat.sh
+if [ ! -d "/opt/solr-tomcat/" ]; then
+    sudo ${EXTENSION_ROOTPATH}Resources/Install/install-solr-tomcat.sh
+else
+    cd /opt/solr-tomcat/
+    ls -lra
+    ./tomcat/bin/startup.sh
+fi
