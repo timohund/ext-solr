@@ -12,7 +12,7 @@ EXT_SOLR_VERSION=3.2
 SOLR_TYPO3_PLUGIN_VERSION=1.3.0
 JAVA_VERSION=7
 
-if [ -z $SOLR_INSTALL_DIR ]; then
+if [ ! -n $SOLR_INSTALL_DIR ]; then
 	SOLR_INSTALL_DIR="/opt/solr-tomcat"
 fi
 
