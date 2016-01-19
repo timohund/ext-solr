@@ -301,6 +301,10 @@ cd tomcat/conf/Catalina/localhost
 
 # install context descriptor for the solr context/webapp, sets the solr.home property
 wgetresource Tomcat/solr.xml
+DEFAULT_INSTALL_PATH=/opt/solr-tomcat
+# todo fix in template file
+sed -i 's|'$DEFAULT_INSTALL_PATH'|'$SOLR_INSTALL_DIR'|g' Tomcat/solr.xml
+cat Tomcat/solr.xml
 
 # copy libs
 cd ${SOLR_INSTALL_DIR}
