@@ -137,13 +137,6 @@ cecho "Checking requirements." $green
 
 PASSALLCHECKS=1
 
-# Make sure only root can run this script
-if [[ $EUID -ne 0 ]]
-then
-	cecho "This script must be run as root." $red
-	exit 1
-fi
-
 wget --version > /dev/null 2>&1
 CHECK=$?
 if [ $CHECK -ne "0" ]
