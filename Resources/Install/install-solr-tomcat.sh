@@ -303,8 +303,8 @@ cd tomcat/conf/Catalina/localhost
 wgetresource Tomcat/solr.xml
 DEFAULT_INSTALL_PATH=/opt/solr-tomcat
 # todo fix in template file
-sed -i 's|'$DEFAULT_INSTALL_PATH'|'$SOLR_INSTALL_DIR'|g' Tomcat/solr.xml
-cat Tomcat/solr.xml
+sed -i 's|'$DEFAULT_INSTALL_PATH'|'$SOLR_INSTALL_DIR'|g' solr.xml
+cat solr.xml
 
 # copy libs
 cd ${SOLR_INSTALL_DIR}
