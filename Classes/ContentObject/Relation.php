@@ -130,6 +130,7 @@ class Relation
         $localFieldName = $this->configuration['localField'];
 
         if (isset($localTableTca['columns'][$localFieldName])) {
+            $localRecordUid = $this->getUidOfRecordOverlay($localTableName, $localRecordUid);
             $localFieldTca = $localTableTca['columns'][$localFieldName];
             if (isset($localFieldTca['config']['MM']) && trim($localFieldTca['config']['MM']) !== '') {
                 $relatedItems = $this->getRelatedItemsFromMMTable($localTableName,
@@ -160,6 +161,7 @@ class Relation
 
         $mmTableName = $localFieldTca['config']['MM'];
 
+        // @todo: $mmTableSortingField is not used, can we remove this
         $mmTableSortingField = '';
         if (isset($this->configuration['relationTableSortingField'])) {
             $mmTableSortingField = $mmTableName . '.' . $this->configuration['relationTableSortingField'];
@@ -410,5 +412,31 @@ class Relation
         $value = $parentContentObject->stdWrap($value, $this->configuration);
 
         return $value;
+    }
+
+    /**
+     * When the record has an overlay we retrieve the uid of the translated record,
+     * to resolve the relations from the translation.
+     * 
+     * @param string $localTableName
+     * @param integer $localRecordUid
+     * @return integer
+     */
+    protected function getUidOfRecordOverlay($localTableName, $localRecordUid)
+    {
+        // when no language is set we can return the passed recordUid
+        if (!$GLOBALS['TSFE']->sys_language_uid > 0) {
+            return $localRecordUid;
+        }
+
+        /** @var  $db  \TYPO3\CMS\Core\Database\DatabaseConnection */
+        $db = $GLOBALS['TYPO3_DB'];
+        $record = $db->exec_SELECTgetSingleRow('*', $localTableName, 'uid = ' . $localRecordUid);
+        $record = $this->getTranslationOverlay($localTableName, $record);
+
+            // when we
+        $localRecordUid = $record['_LOCALIZED_UID'] ? $record['_LOCALIZED_UID'] : $localRecordUid;
+
+        return $localRecordUid;
     }
 }
