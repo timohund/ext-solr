@@ -3,6 +3,7 @@
 # This script is triggered by travis when a build has been triggered and was tagged
 #
 # See: http://insight.helhum.io/post/140850737265/automatically-upload-typo3-extensions-to-ter-with
+echo "PWD: $(pwd)"
 echo "Travis tag is: ${TRAVIS_TAG}"
 
 if [ -n "$TRAVIS_TAG" ] && [ -n "$TYPO3_ORG_USERNAME" ] && [ -n "$TYPO3_ORG_PASSWORD" ]; then
