@@ -9,6 +9,9 @@ if [ $TRAVIS ]; then
     export PATH="$PATH:$HOME/.composer/vendor/bin"
 fi
 
+echo "Run PHP Lint"
+find . -name \*.php ! -path "./.Build/*" | parallel --gnu php -d display_errors=stderr -l {} > /dev/null \;
+
 .Build/bin/php-cs-fixer --version > /dev/null 2>&1
 if [ $? -eq "0" ]; then
     echo "Check PSR-2 compliance"
@@ -22,7 +25,7 @@ if [ $? -eq "0" ]; then
 fi
 
 echo "Run unit tests"
-.Build/bin/phpunit --colors -c Tests/Build/UnitTests.xml --coverage-html=../../../coverage-unit/
+.Build/bin/phpunit --colors -c Build/Test/UnitTests.xml --coverage-html=../../../solr-coverage-unit/
 
 echo "Run integration tests"
 
@@ -58,4 +61,4 @@ else
 	exit 1
 fi
 
-.Build/bin/phpunit --colors -c Tests/Build/IntegrationTests.xml --coverage-html=../../../coverage-integration/
+.Build/bin/phpunit --colors -c Build/Test/IntegrationTests.xml --coverage-html=../../../solr-coverage-integration/
