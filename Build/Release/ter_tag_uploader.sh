@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-EXTENSION_KEY=solr
+EXTENSION_KEY="solr"
 
 # This script is triggered by travis when a build has been triggered and was tagged
 #
 # See: http://insight.helhum.io/post/140850737265/automatically-upload-typo3-extensions-to-ter-with
 
-ls -l .Build/bin/
 echo "PWD: $(pwd)"
 echo "Travis tag is: ${TRAVIS_TAG}"
 
+export PATH="$PATH:$HOME/.composer/vendor/bin"
 
 if [ -n "$TRAVIS_TAG" ] && [ -n "$TYPO3_ORG_USERNAME" ] && [ -n "$TYPO3_ORG_PASSWORD" ]; then
   php Build/Release/pre_upload_check.php
