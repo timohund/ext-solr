@@ -179,8 +179,10 @@ class Relevance implements ViewHelper
         $content = '';
 
         if ($maximumScore > 0) {
-            $score = floatval($documentScore);
+            $score = Util::parseFloat($documentScore);
             $scorePercentage = round($score * 100 / $maximumScore);
+
+
             $content = $scorePercentage;
         }
 

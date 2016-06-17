@@ -707,4 +707,20 @@ class Util
 
         return false;
     }
+
+    /**
+     * @param string $floatString
+     * @return float
+     */
+    public static function parseFloat($floatString)
+    {
+        if (!is_string($floatString)) {
+            return floatval($floatString);
+        }
+
+        $LocaleInfo = localeconv();
+        $floatString = str_replace($LocaleInfo["thousands_sep"], "", $floatString);
+        $floatString = str_replace($LocaleInfo["decimal_point"], ".", $floatString);
+        return floatval($floatString);
+    }
 }

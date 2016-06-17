@@ -23,7 +23,7 @@ namespace ApacheSolrForTypo3\Solr\ViewHelper;
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-
+use ApacheSolrForTypo3\Solr\Util;
 
 /**
  * View helper class to turn a result document's relevance score into a nicer
@@ -50,9 +50,8 @@ class RelevanceBar extends Relevance
         $content = '';
 
         if ($maximumScore > 0) {
-            $score = floatval($documentScore);
+            $score = Util::parseFloat($documentScore);
             $scorePercentage = round($score * 100 / $maximumScore);
-
             $content = '<div class="tx-solr-relevance-bar"><div class="tx-solr-relevance themeColorBackground" style="width: '
                 . $scorePercentage . '%">&nbsp;</div><div class="tx-solr-relevance-fill" style="width: '
                 . (100 - $scorePercentage) . '%"></div></div>';
