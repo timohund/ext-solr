@@ -31,7 +31,7 @@
 	<lib dir="../contrib/velocity/lib" regex=".*\.jar" />
 
 	<!-- TYPO3 Plugins -->
-	<lib dir="../typo3lib/" />
+	<lib dir="./typo3lib/" />
 
 	<directoryFactory name="DirectoryFactory"
 		class="solr.NRTCachingDirectoryFactory"/>
@@ -522,8 +522,7 @@
 	</transformer>
 
 	<!-- TYPO3 specific plugins, request handlers -->
-	<!-- <queryParser name="typo3access" class="org.typo3.solr.search.AccessFilterQParserPlugin"/> -->
-
+	<queryParser name="typo3access" class="org.typo3.solr.search.AccessFilterQParserPlugin"/>
 
 	<admin>
 		<defaultQuery>*:*</defaultQuery>
