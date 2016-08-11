@@ -17,7 +17,7 @@ addons:
       - oracle-java8-installer
 env:
   global:
-   - JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    - JAVA_HOME=/usr/lib/jvm/java-8-oracle
     - TYPO3_DATABASE_NAME="typo3_ci"
     - TYPO3_DATABASE_HOST="localhost"
     - TYPO3_DATABASE_USERNAME="root"
