@@ -29,6 +29,7 @@ use ApacheSolrForTypo3\Solr\Domain\Index\Queue\RecordMonitor\Helper\MountPagesUp
 use ApacheSolrForTypo3\Solr\GarbageCollector;
 use ApacheSolrForTypo3\Solr\IndexQueue\Queue;
 use ApacheSolrForTypo3\Solr\System\Configuration\TypoScriptConfiguration;
+use ApacheSolrForTypo3\Solr\System\TCA\TCAService;
 use ApacheSolrForTypo3\Solr\Util;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -65,15 +66,24 @@ class RecordMonitor extends AbstractDataHandlerListener
     protected $mountPageUpdater;
 
     /**
+     * TCA Service
+     *
+     * @var TCAService
+     */
+    protected $tcaService;
+
+    /**
      * RecordMonitor constructor.
      *
      * @param Queue|null $indexQueue
      * @param MountPagesUpdater|null $mountPageUpdater
+     * @param TCAService|null $TCAService
      */
-    public function __construct(Queue $indexQueue = null, MountPagesUpdater $mountPageUpdater = null)
+    public function __construct(Queue $indexQueue = null, MountPagesUpdater $mountPageUpdater = null, TCAService $TCAService = null)
     {
         $this->indexQueue = is_null($indexQueue) ? GeneralUtility::makeInstance(Queue::class) : $indexQueue;
         $this->mountPageUpdater = is_null($mountPageUpdater) ? GeneralUtility::makeInstance(MountPagesUpdater::class) : $mountPageUpdater;
+        $this->tcaService = is_null($TCAService) ? GeneralUtility::makeInstance(TCAService::class) : $TCAService;
     }
 
     /**
@@ -107,13 +117,8 @@ class RecordMonitor extends AbstractDataHandlerListener
      * @param string $value
      * @param DataHandler $tceMain TYPO3 Core Engine parent object
      */
-    public function processCmdmap_preProcess(
-        $command,
-        $table,
-        $uid,
-        $value,
-        DataHandler $tceMain
-    ) {
+    public function processCmdmap_preProcess($command, $table, $uid, $value, DataHandler $tceMain)
+    {
         if ($command == 'delete' && $table == 'tt_content' && $GLOBALS['BE_USER']->workspace == 0) {
             // skip workspaces: index only LIVE workspace
             $this->indexQueue->updateItem('pages',
@@ -134,13 +139,8 @@ class RecordMonitor extends AbstractDataHandlerListener
      * @param string $value
      * @param DataHandler $tceMain TYPO3 Core Engine parent object
      */
-    public function processCmdmap_postProcess(
-        $command,
-        $table,
-        $uid,
-        $value,
-        DataHandler $tceMain
-    ) {
+    public function processCmdmap_postProcess($command, $table, $uid, $value, DataHandler $tceMain)
+    {
         if (Util::isDraftRecord($table, $uid)) {
             // skip workspaces: index only LIVE workspace
             return;
@@ -158,11 +158,8 @@ class RecordMonitor extends AbstractDataHandlerListener
                     $this->solrConfiguration = Util::getSolrConfigurationFromPageId($uid);
                     $record = $this->getRecord($table, $uid);
 
-                    if (!empty($record) && $this->isEnabledRecord($table,
-                            $record)
-                    ) {
+                    if (!empty($record) && $this->tcaService->isEnabledRecord($table, $record)) {
                         $this->mountPageUpdater->update($uid);
-
                         $this->indexQueue->updateItem($table, $uid);
                     } else {
                         // TODO should be moved to garbage collector
@@ -179,18 +176,13 @@ class RecordMonitor extends AbstractDataHandlerListener
                     if ($isMonitoredTable) {
                         $record = $this->getRecord($table, $uid);
 
-                        if (!empty($record) && $this->isEnabledRecord($table,
-                                $record)
-                        ) {
+                        if (!empty($record) && $this->tcaService->isEnabledRecord($table, $record)) {
                             if (Util::isLocalizedRecord($table, $record)) {
                                 // if it's a localization overlay, update the original record instead
                                 $uid = $record[$GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField']];
                             }
 
-                            $configurationName = $this->getIndexingConfigurationName($table,
-                                $uid);
-                            $this->indexQueue->updateItem($table, $uid,
-                                $configurationName);
+                            $this->determineConfigurationAndUpdateIndexQueueItem($table, $uid);
                         } else {
                             // TODO should be moved to garbage collector
                             if ($this->indexQueue->containsItem($table, $uid)) {
@@ -205,7 +197,7 @@ class RecordMonitor extends AbstractDataHandlerListener
             // moving pages in LIVE workspace
             $this->solrConfiguration = Util::getSolrConfigurationFromPageId($uid);
             $record = $this->getRecord('pages', $uid);
-            if (!empty($record) && $this->isEnabledRecord($table, $record)) {
+            if (!empty($record) && $this->tcaService->isEnabledRecord($table, $record)) {
                 $this->indexQueue->updateItem('pages', $uid);
             } else {
                 // check if the item should be removed from the index because it no longer matches the conditions
@@ -228,13 +220,8 @@ class RecordMonitor extends AbstractDataHandlerListener
      * @param DataHandler $tceMain TYPO3 Core Engine parent object
      * @return void
      */
-    public function processDatamap_afterDatabaseOperations(
-        $status,
-        $table,
-        $uid,
-        array $fields,
-        DataHandler $tceMain
-    ) {
+    public function processDatamap_afterDatabaseOperations($status, $table, $uid, array $fields, DataHandler $tceMain)
+    {
         $recordTable = $table;
         $recordUid = $uid;
 
@@ -312,10 +299,8 @@ class RecordMonitor extends AbstractDataHandlerListener
             // we have a localized record without a visible parent record. Nothing to do.
             return;
         }
-        if ($this->isEnabledRecord($recordTable, $record)) {
-            $configurationName = $this->getIndexingConfigurationName($recordTable, $recordUid);
-
-            $this->indexQueue->updateItem($recordTable, $recordUid, $configurationName);
+        if ($this->tcaService->isEnabledRecord($recordTable, $record)) {
+            $this->determineConfigurationAndUpdateIndexQueueItem($recordTable, $recordUid);
         }
 
 
@@ -335,7 +320,7 @@ class RecordMonitor extends AbstractDataHandlerListener
     {
         $tableEnableFields = implode(', ', $GLOBALS['TCA'][$recordTable]['ctrl']['enablecolumns']);
         $l10nParentRecord = BackendUtility::getRecord($recordTable, $recordUid, $tableEnableFields, '', false);
-        return $this->isEnabledRecord($recordTable, $l10nParentRecord);
+        return $this->tcaService->isEnabledRecord($recordTable, $l10nParentRecord);
     }
 
     /**
@@ -367,14 +352,8 @@ class RecordMonitor extends AbstractDataHandlerListener
      *
      * @return int
      */
-    protected function getRecordPageId(
-        $status,
-        $recordTable,
-        $recordUid,
-        $originalUid,
-        array $fields,
-        DataHandler $tceMain
-    ) {
+    protected function getRecordPageId($status, $recordTable, $recordUid, $originalUid, array $fields, DataHandler $tceMain)
+    {
         if ($status == 'update' && !isset($fields['pid'])) {
             $recordPageId = $this->getValidatedPid($tceMain, $recordTable, $recordUid);
             if ($recordTable == 'pages' && Util::isRootPage($recordUid)) {
@@ -478,35 +457,6 @@ class RecordMonitor extends AbstractDataHandlerListener
     }
 
     /**
-     * Checks if a record is "enabled"
-     *
-     * A record is considered "enabled" if
-     *  - it is not hidden
-     *  - it is not deleted
-     *  - as a page it is not set to be excluded from search
-     *
-     * @param string $table The record's table name
-     * @param array $record The record to check
-     * @return bool TRUE if the record is enabled, FALSE otherwise
-     */
-    protected function isEnabledRecord($table, $record)
-    {
-        $recordEnabled = true;
-
-        if (
-            (isset($GLOBALS['TCA'][$table]['ctrl']['enablecolumns']['disabled']) && !empty($record[$GLOBALS['TCA'][$table]['ctrl']['enablecolumns']['disabled']]))
-            ||
-            (isset($GLOBALS['TCA'][$table]['ctrl']['delete']) && !empty($record[$GLOBALS['TCA'][$table]['ctrl']['delete']]))
-            ||
-            ($table == 'pages' && !empty($record['no_search']))
-        ) {
-            $recordEnabled = false;
-        }
-
-        return $recordEnabled;
-    }
-
-    /**
      * Retrieves the name of the  Indexing Queue Configuration for a record
      *
      * @param string $recordTable Table to read from
@@ -597,5 +547,17 @@ class RecordMonitor extends AbstractDataHandlerListener
         }
 
         return false;
+    }
+
+    /**
+     * This method retrieves the indexConfiguration for a record and updates the item in the index queue.
+     *
+     * @param string $table
+     * @param integer $uid
+     */
+    protected function determineConfigurationAndUpdateIndexQueueItem($table, $uid)
+    {
+        $configurationName = $this->getIndexingConfigurationName($table, $uid);
+        $this->indexQueue->updateItem($table, $uid, $configurationName);
     }
 }
