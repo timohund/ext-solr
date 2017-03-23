@@ -295,11 +295,14 @@ class ResultsCommand implements PluginCommand
             $currentPage = $solrGetParameters['page'];
             unset($solrGetParameters['page']);
 
+            $queryString = GeneralUtility::_GET('q');
+
             $pageBrowserConfiguration = array_merge(
                 $solrPageBrowserConfiguration,
                 [
                     'numberOfPages' => $numberOfPages,
                     'currentPage' => $currentPage,
+                    'queryString' => $queryString,
                     'extraQueryString' => GeneralUtility::implodeArrayForUrl('tx_solr',
                         $solrGetParameters),
                     'templateFile' => $this->configuration->getTemplateByFileKey('pagebrowser')

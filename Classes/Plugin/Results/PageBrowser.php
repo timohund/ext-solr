@@ -45,6 +45,8 @@ class PageBrowser
 
     protected $template;
 
+    protected $queryString = '';
+
     protected $configuration = [];
     protected $labels = [];
     protected $contentObject = null;
@@ -64,6 +66,7 @@ class PageBrowser
 
         $this->numberOfPages = $configuration['numberOfPages'];
         $this->currentPage = $configuration['currentPage'];
+        $this->queryString = $configuration['queryString'];
 
         $this->pagesBefore = (int)$configuration['pagesBefore'];
         $this->pagesAfter = (int)$configuration['pagesAfter'];
@@ -186,13 +189,17 @@ class PageBrowser
         $queryConf = [
             'exclude' => $this->pageParameterName . ',' .
                 rawurlencode($this->pageParameterName) .
-                ',cHash',
+                ',cHash,q',
         ];
         $additionalParams = urldecode($this->contentObject->getQueryArguments($queryConf));
 
         // Add page number
         if ($page > 0) {
             $additionalParams .= '&' . $this->pageParameterName . '=' . $page;
+        }
+
+        if ($this->queryString !== '') {
+            $additionalParams .= '&q=' . urlencode($this->queryString);
         }
 
         // Add extra query string from config

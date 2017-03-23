@@ -116,8 +116,7 @@ class LastSearchesCommand implements PluginCommand
             $keywords = stripslashes($keywords);
             $lastSearches[] = [
                 'q' => Template::escapeMarkers($keywords),
-                'parameters' => '&q=' . html_entity_decode($keywords,
-                        ENT_NOQUOTES, 'UTF-8'),
+                'parameters' => '&q=' . urlencode($keywords),
                 'pid' => $this->parentPlugin->getLinkTargetPageId()
             ];
         }

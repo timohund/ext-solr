@@ -89,7 +89,7 @@ class FormCommand implements PluginCommand
             'action_language' => intval($GLOBALS['TSFE']->sys_page->sys_language_uid),
             'action_language_parameter' => 'L',
             'accept-charset' => $GLOBALS['TSFE']->metaCharset,
-            'q' => $this->parentPlugin->getCleanUserQuery()
+            'q' => urldecode($this->parentPlugin->getCleanUserQuery())
         ];
 
         // hook to modify the search form

@@ -149,8 +149,7 @@ class FrequentSearchesCommand implements PluginCommand
                     'hits' => $hits,
                     'style' => 'font-size: ' . $size . 'px',
                     'class' => 'tx-solr-frequent-term-' . $size,
-                    'parameters' => '&q=' . html_entity_decode($term,
-                            ENT_NOQUOTES, 'UTF-8'),
+                    'parameters' => '&q=' . urlencode($term),
                     'pid' => $this->parentPlugin->getLinkTargetPageId()
                 ];
             }

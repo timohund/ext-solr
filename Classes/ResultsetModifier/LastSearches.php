@@ -52,6 +52,7 @@ class LastSearches implements ResultSetModifier
     ) {
         $keywords = $resultCommand->getParentPlugin()->getSearchResultSetService()->getSearch()->getQuery()->getKeywordsCleaned();
 
+        $keywords = html_entity_decode($keywords, ENT_NOQUOTES, 'UTF-8');
         $keywords = trim($keywords);
         if (empty($keywords)) {
             return $resultSet;

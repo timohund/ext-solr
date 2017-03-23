@@ -303,7 +303,8 @@ abstract class PluginBase extends AbstractPlugin
      */
     protected function initializeQuery()
     {
-        $this->rawUserQuery = GeneralUtility::_GET('q');
+        $query = GeneralUtility::_GET('q');
+        $this->rawUserQuery = (trim($query) !== '') ? urldecode($query) : $query;
     }
 
     /**

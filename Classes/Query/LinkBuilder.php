@@ -215,7 +215,7 @@ class LinkBuilder
 
         $keywords = $this->query->getKeywords();
         if (!empty($keywords)) {
-            $queryGetParameter = '&q=' . $keywords;
+            $queryGetParameter = '&q=' . urlencode($keywords);
         }
 
         $linkConfiguration = [
