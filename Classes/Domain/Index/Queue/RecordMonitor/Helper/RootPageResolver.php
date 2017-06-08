@@ -149,10 +149,8 @@ class RootPageResolver implements SingletonInterface
         $rootLine = GeneralUtility::makeInstance(Rootline::class);
         $rootPageId = intval($pageId) ?: intval($GLOBALS['TSFE']->id);
 
-        // frontend
-        if (!empty($GLOBALS['TSFE']->rootLine)) {
-            $rootLine->setRootLineArray($GLOBALS['TSFE']->rootLine);
-        }
+        $rootLineArray = $this->getRootLineArray($pageId);
+        $rootLine->setRootLineArray($rootLineArray);
 
         // fallback, backend
         if ($pageId != 0 && ($forceFallback || !$rootLine->getHasRootPage())) {
@@ -163,9 +161,20 @@ class RootPageResolver implements SingletonInterface
 
         $rootPageFromRootLine = $rootLine->getRootPageId();
 
-        return $rootPageFromRootLine === 0 ? $rootPageId : $rootPageFromRootLine;
+        return (int)($rootPageFromRootLine === 0 ? $rootPageId : $rootPageFromRootLine);
     }
 
+    /**
+     * Returns the rootLine if present (frontend has priority over backend), otherwise an empty array will be returned.
+     *
+     * @param $pageId
+     * @return array
+     */
+    protected function getRootLineArray($pageId)
+    {
+        $rootLineArray = !empty($GLOBALS['TSFE']->rootLine) ? $GLOBALS['TSFE']->rootLine : BackendUtility::BEgetRootLine($pageId);
+        return is_array($rootLineArray) ? $rootLineArray : [];
+    }
 
     /**
      * This method determines the responsible site roots for a record by getting the rootPage of the record and checking

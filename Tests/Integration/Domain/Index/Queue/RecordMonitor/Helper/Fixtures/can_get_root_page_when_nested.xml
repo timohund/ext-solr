@@ -69,37 +69,6 @@
         <sorting>100</sorting>
     </sys_template>
 
-    <sys_template>
-        <uid>2</uid>
-        <pid>2</pid>
-        <root>0</root>
-        <clear>0</clear>
-        <config>
-            <![CDATA[
-
-                plugin.tx_solr {
-                    index {
-                        queue {
-
-                            foo {
-                                table = tx_fakeextension_domain_model_bar
-
-                                fields {
-                                    title = title
-                                    fieldFromRootLine_stringS =  TEXT
-                                    fieldFromRootLine_stringS {
-                                        field = title
-                                        stdWrap.case = upper
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            ]]>
-        </config>
-        <sorting>100</sorting>
-    </sys_template>
     <pages>
         <uid>1</uid>
         <is_siteroot>1</is_siteroot>
@@ -108,6 +77,7 @@
     <pages>
         <title>page with extension template</title>
         <uid>2</uid>
+        <is_siteroot>1</is_siteroot>
         <doktype>1</doktype>
         <pid>1</pid>
     </pages>
@@ -117,12 +87,4 @@
         <doktype>1</doktype>
         <pid>2</pid>
     </pages>
-
-    <tx_fakeextension_domain_model_bar>
-        <uid>111</uid>
-        <pid>3</pid>
-        <title>testnews</title>
-        <category>4711</category>
-    </tx_fakeextension_domain_model_bar>
-
 </dataset>
