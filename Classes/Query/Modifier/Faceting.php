@@ -94,7 +94,7 @@ class Faceting implements Modifier, SearchRequestAware
      */
     public function modifyQuery(Query $query)
     {
-        $query->setFaceting();
+        $query->getFaceting()->setIsEnabled(true);
         $this->buildFacetingParameters();
 
         $searchArguments = $this->searchRequest->getArguments();
@@ -103,11 +103,15 @@ class Faceting implements Modifier, SearchRequestAware
         }
 
         foreach ($this->facetParameters as $facetParameter => $value) {
-            $query->addQueryParameter($facetParameter, $value);
+            if(strtolower($facetParameter) === 'facet.field') {
+                $query->getFaceting()->setFields($value);
+            } else {
+                $query->getFaceting()->addAdditionalParameter($facetParameter, $value);
+            }
         }
 
         foreach ($this->facetFilters as $filter) {
-            $query->addFilter($filter);
+            $query->getFilters()->add($filter);
         }
 
         return $query;
