@@ -18,6 +18,7 @@
 
                 config.sys_language_mode = ignore
                 config.sys_language_uid = 0
+
                 page = PAGE
                 page.typeNum = 0
                 page.bodyTag = <body>
@@ -59,24 +60,26 @@
                             foo = 1
                             foo {
                                 table = tx_fakeextension_domain_model_bar
-
                                 fields {
                                     title = title
-                                    category_stringM = SOLR_RELATION
-                                    category_stringM {
-                                        localField = tags
-                                        multiValue = 1
+                                    url = TEXT
+                                    url {
+                                        typolink.parameter = 1
+                                        typolink.additionalParams = &tx_foo[uid]={field:uid}&L={field:__solr_index_language}
+                                        typolink.additionalParams.insertData = 1
+                                        typolink.returnLast = url
+                                        typolink.useCacheHash = 1
                                     }
                                 }
                             }
                         }
                     }
                 }
-
                 [globalVar = GP:L = 1]
                     plugin.tx_solr.solr.path = /solr/core_de/
                     config.sys_language_uid = 1
                 [end]
+
             ]]>
         </config>
         <sorting>100</sorting>
@@ -95,7 +98,7 @@
     <tx_fakeextension_domain_model_bar>
         <uid>88</uid>
         <pid>1</pid>
-        <title>orignal</title>
+        <title>original</title>
     </tx_fakeextension_domain_model_bar>
 
     <tx_fakeextension_domain_model_bar>
@@ -105,22 +108,4 @@
         <sys_language_uid>1</sys_language_uid>
         <l10n_parent>88</l10n_parent>
     </tx_fakeextension_domain_model_bar>
-
-    <tx_fakeextension_domain_model_related_mm>
-        <uid_local>99</uid_local>
-        <uid_foreign>12</uid_foreign>
-        <tablenames>tx_fakeextension_domain_model_mmrelated</tablenames>
-    </tx_fakeextension_domain_model_related_mm>
-
-    <tx_fakeextension_domain_model_mmrelated>
-        <uid>8</uid>
-        <pid>1</pid>
-        <tag>the tag</tag>
-    </tx_fakeextension_domain_model_mmrelated>
-
-    <tx_fakeextension_domain_model_mmrelated>
-        <uid>12</uid>
-        <pid>1</pid>
-        <tag>translated tag</tag>
-    </tx_fakeextension_domain_model_mmrelated>
 </dataset>

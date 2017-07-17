@@ -183,12 +183,13 @@ abstract class IntegrationTest extends FunctionalTestCase
     }
 
     /**
+     * @param string $coreName
      * @return void
      */
-    protected function cleanUpSolrServerAndAssertEmpty()
+    protected function cleanUpSolrServerAndAssertEmpty($coreName = 'core_en')
     {
         // cleanup the solr server
-        $result = file_get_contents('http://localhost:8999/solr/core_en/update?stream.body=<delete><query>*:*</query></delete>&commit=true');
+        $result = file_get_contents('http://localhost:8999/solr/' . $coreName . '/update?stream.body=<delete><query>*:*</query></delete>&commit=true');
 
         if (strpos($result, '<int name="QTime">') == false) {
             $this->fail('Could not empty solr test index');
@@ -201,11 +202,12 @@ abstract class IntegrationTest extends FunctionalTestCase
     }
 
     /**
+     * @param string $coreName
      * @return void
      */
-    protected function waitToBeVisibleInSolr()
+    protected function waitToBeVisibleInSolr($coreName = 'core_en')
     {
-        $url = 'http://localhost:8999/solr/core_en/update?softCommit=true';
+        $url = 'http://localhost:8999/solr/' . $coreName . '/update?softCommit=true';
         get_headers($url);
     }
 
