@@ -33,7 +33,7 @@ class OptionsFacetParser extends AbstractFacetParser
         $response = $resultSet->getResponse();
         $fieldName = $facetConfiguration['field'];
         $label = $this->getPlainLabelOrApplyCObject($facetConfiguration);
-        $optionsFromSolrResponse = isset($response->facet_counts->facet_fields->{$fieldName}) ? get_object_vars($response->facet_counts->facet_fields->{$fieldName}) : [];
+        $optionsFromSolrResponse = $this->getOptionsFromSolrResponse($facetConfiguration, $fieldName, $response);
         $optionsFromRequest = $this->getActiveFacetValuesFromRequest($resultSet, $facetName);
 
         $hasOptionsInResponse = !empty($optionsFromSolrResponse);
@@ -78,5 +78,28 @@ class OptionsFacetParser extends AbstractFacetParser
         $facet = $this->applyReverseOrder($facet, $facetConfiguration);
 
         return $facet;
+    }
+
+    /**
+     * @param array $facetConfiguration
+     * @param string $fieldName
+     * @param \Apache_Solr_Response $response
+     * @return array
+     */
+    protected function getOptionsFromSolrResponse(array $facetConfiguration, $fieldName, \Apache_Solr_Response $response)
+    {
+        $useJson = (bool)$facetConfiguration['useJson'];
+        if ($useJson) {
+            if (isset($response->facets->{$fieldName})) {
+                foreach ($response->facets->{$fieldName}->buckets as $bucket) {
+                    $optionValue = $bucket->val;
+                    $optionCount = $bucket->count;
+                    $optionsFromSolrResponse[$optionValue] = $optionCount;
+                }
+            }
+        } else {
+            $optionsFromSolrResponse = isset($response->facet_counts->facet_fields->{$fieldName}) ? get_object_vars($response->facet_counts->facet_fields->{$fieldName}) : [];
+        }
+        return $optionsFromSolrResponse;
     }
 }
