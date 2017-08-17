@@ -34,13 +34,18 @@ class OptionsFacetQueryBuilder extends DefaultFacetQueryBuilder implements Facet
             return parent::build($facetName, $configuration);
         }
 
-        $facetParameters['json.facet'][$facetConfiguration['field']] = [
+        $jsonFacetOptions = [
             'type' => 'terms',
             'field' => $facetConfiguration['field'],
             'limit' => $facetConfiguration['limit'] > 0 ? (int)$facetConfiguration['limit'] : $configuration->getSearchFacetingFacetLimit(),
             'mincount' => $facetConfiguration['mincount'] > 0 ? (int)$facetConfiguration['mincount'] : $configuration->getSearchFacetingMinimumCount(),
         ];
 
+        if ($configuration->getSearchFacetingKeepAllFacetsOnSelection() || $facetConfiguration['keepAllOptionsOnSelection']) {
+            $jsonFacetOptions['domain']['excludeTags'] = $facetConfiguration['field'];
+        }
+
+        $facetParameters['json.facet'][$facetConfiguration['field']] = $jsonFacetOptions;
         return $facetParameters;
     }
 }
