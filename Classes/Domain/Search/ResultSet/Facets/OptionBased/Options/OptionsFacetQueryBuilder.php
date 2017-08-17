@@ -41,8 +41,20 @@ class OptionsFacetQueryBuilder extends DefaultFacetQueryBuilder implements Facet
             'mincount' => $facetConfiguration['mincount'] > 0 ? (int)$facetConfiguration['mincount'] : $configuration->getSearchFacetingMinimumCount(),
         ];
 
-        if ($configuration->getSearchFacetingKeepAllFacetsOnSelection() || $facetConfiguration['keepAllOptionsOnSelection']) {
+
+        $isKeepAllOptionsActiveForSingleFacet = $facetConfiguration['keepAllOptionsOnSelection'] == 1;
+        $isKeepAllOptionsActiveGlobalsAndCountsEnabled = $configuration->getSearchFacetingKeepAllFacetsOnSelection()
+            && $configuration->getSearchFacetingCountAllFacetsForSelection();
+
+        if ($isKeepAllOptionsActiveForSingleFacet || $isKeepAllOptionsActiveGlobalsAndCountsEnabled) {
             $jsonFacetOptions['domain']['excludeTags'] = $facetConfiguration['field'];
+        } else {
+            // keepAllOptionsOnSelection globally active
+            $facets = [];
+            foreach ($configuration->getSearchFacetingFacets() as $facet) {
+                $facets[] = $facet['field'];
+            }
+            $jsonFacetOptions['domain']['excludeTags'] = implode(',', $facets);
         }
 
         $facetParameters['json.facet'][$facetConfiguration['field']] = $jsonFacetOptions;
