@@ -37,8 +37,8 @@ class OptionsFacetQueryBuilder extends DefaultFacetQueryBuilder implements Facet
         $facetParameters['json.facet'][$facetConfiguration['field']] = [
             'type' => 'terms',
             'field' => $facetConfiguration['field'],
-            'limit' => $facetConfiguration['limit'] ?: $configuration->getSearchFacetingFacetLimit(),
-            'mincount' => $facetConfiguration['mincount'] ?: $configuration->getSearchFacetingMinimumCount(),
+            'limit' => $facetConfiguration['limit'] > 0 ? (int)$facetConfiguration['limit'] : $configuration->getSearchFacetingFacetLimit(),
+            'mincount' => $facetConfiguration['mincount'] > 0 ? (int)$facetConfiguration['mincount'] : $configuration->getSearchFacetingMinimumCount(),
         ];
 
         return $facetParameters;
