@@ -289,6 +289,7 @@ class SearchResultSetService
             $response->debug = [];
             $response->responseHeader = [];
             $response->facet_counts = [];
+            $response->facets = [];
 
             $documents = [];
         }
