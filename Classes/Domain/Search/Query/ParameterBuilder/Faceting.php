@@ -24,8 +24,8 @@ namespace ApacheSolrForTypo3\Solr\Domain\Search\Query\ParameterBuilder;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use ApacheSolrForTypo3\Solr\Domain\Search\ResultSet\Facets\SortingExpression;
 use ApacheSolrForTypo3\Solr\System\Configuration\TypoScriptConfiguration;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * The Faceting ParameterProvider is responsible to build the solr query parameters
@@ -231,22 +231,17 @@ class Faceting implements ParameterBuilder
     /**
      * Reads the facet sorting configuration and applies it to the queryParameters.
      *
+     * @param array $facetParameters
      * @return array
      */
     protected function applySorting(array $facetParameters)
     {
-        if (!GeneralUtility::inList('count,index,alpha,lex,1,0,true,false', $this->sorting)) {
-            // when the sorting is not in the list of valid values we do not apply it.
-            return $facetParameters;
-        }
-        $solrSorting = $this->sorting;
+        $sortingExpression = new SortingExpression();
+        $globalSortingExpression = $sortingExpression->getForFacet($this->sorting);
 
-        // alpha and lex alias for index
-        if ($this->sorting === 'alpha' || $this->sorting === 'lex') {
-            $solrSorting = 'index';
+        if (!empty($globalSortingExpression)) {
+            $facetParameters['facet.sort'] = $globalSortingExpression;
         }
-
-        $facetParameters['facet.sort'] = $solrSorting;
 
         return $facetParameters;
     }

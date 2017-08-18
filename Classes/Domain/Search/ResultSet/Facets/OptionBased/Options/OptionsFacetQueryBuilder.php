@@ -16,6 +16,7 @@ namespace ApacheSolrForTypo3\Solr\Domain\Search\ResultSet\Facets\OptionBased\Opt
 
 use ApacheSolrForTypo3\Solr\Domain\Search\ResultSet\Facets\DefaultFacetQueryBuilder;
 use ApacheSolrForTypo3\Solr\Domain\Search\ResultSet\Facets\FacetQueryBuilderInterface;
+use ApacheSolrForTypo3\Solr\Domain\Search\ResultSet\Facets\SortingExpression;
 use ApacheSolrForTypo3\Solr\System\Configuration\TypoScriptConfiguration;
 
 class OptionsFacetQueryBuilder extends DefaultFacetQueryBuilder implements FacetQueryBuilderInterface {
@@ -41,6 +42,12 @@ class OptionsFacetQueryBuilder extends DefaultFacetQueryBuilder implements Facet
             'mincount' => $facetConfiguration['mincount'] > 0 ? (int)$facetConfiguration['mincount'] : $configuration->getSearchFacetingMinimumCount(),
         ];
 
+        if (isset($facetConfiguration['sortBy'])) {
+            $sortingExpression = new SortingExpression();
+            $sorting = $facetConfiguration['sortBy'];
+            $direction = $facetConfiguration['sortDirection'];
+            $jsonFacetOptions['sort'] = $sortingExpression->getForJsonFacet($sorting, $direction);
+        }
 
         $isKeepAllOptionsActiveForSingleFacet = $facetConfiguration['keepAllOptionsOnSelection'] == 1;
         $isKeepAllOptionsActiveGlobalsAndCountsEnabled = $configuration->getSearchFacetingKeepAllFacetsOnSelection()
