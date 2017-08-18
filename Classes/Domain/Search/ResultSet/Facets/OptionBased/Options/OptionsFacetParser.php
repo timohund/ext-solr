@@ -34,6 +34,7 @@ class OptionsFacetParser extends AbstractFacetParser
         $fieldName = $facetConfiguration['field'];
         $label = $this->getPlainLabelOrApplyCObject($facetConfiguration);
         $optionsFromSolrResponse = $this->getOptionsFromSolrResponse($facetConfiguration, $fieldName, $response);
+        $metricsFromSolrResponse = $this->getMetricsFromSolrResponse($facetConfiguration, $fieldName, $response);
         $optionsFromRequest = $this->getActiveFacetValuesFromRequest($resultSet, $facetName);
 
         $hasOptionsInResponse = !empty($optionsFromSolrResponse);
@@ -67,7 +68,7 @@ class OptionsFacetParser extends AbstractFacetParser
 
             $isOptionsActive = in_array($optionsValue, $optionsFromRequest);
             $label = $this->getLabelFromRenderingInstructions($optionsValue, $count, $facetName, $facetConfiguration);
-            $facet->addOption(new Option($facet, $label, $optionsValue, $count, $isOptionsActive));
+            $facet->addOption(new Option($facet, $label, $optionsValue, $count, $isOptionsActive, $metricsFromSolrResponse[$optionsValue]));
         }
 
         // after all options have been created we apply a manualSortOrder if configured
@@ -101,5 +102,35 @@ class OptionsFacetParser extends AbstractFacetParser
             $optionsFromSolrResponse = isset($response->facet_counts->facet_fields->{$fieldName}) ? get_object_vars($response->facet_counts->facet_fields->{$fieldName}) : [];
         }
         return $optionsFromSolrResponse;
+    }
+
+    /**
+     * @param array $facetConfiguration
+     * @param string $fieldName
+     * @param \Apache_Solr_Response $response
+     * @return array
+     */
+    protected function getMetricsFromSolrResponse(array $facetConfiguration, $fieldName, \Apache_Solr_Response $response)
+    {
+        $useJson = (bool)$facetConfiguration['useJson'];
+        if (!$useJson) {
+            return [];
+        }
+
+        if (!isset($response->facets->{$fieldName}->buckets)) {
+            return [];
+        }
+
+        foreach ($response->facets->{$fieldName}->buckets as $bucket) {
+            $bucketVariables = get_object_vars($bucket);
+            foreach ($bucketVariables as $key => $value) {
+                if (strpos($key, 'metrics_') === 0) {
+                    $metricsKey = str_replace('metrics_', '', $key);
+                    $metricsFromSolrResponse[$bucket->val][$metricsKey] = $value;
+                }
+            }
+        }
+
+        return $metricsFromSolrResponse;
     }
 }

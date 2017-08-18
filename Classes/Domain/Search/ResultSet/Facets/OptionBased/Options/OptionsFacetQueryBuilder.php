@@ -38,33 +38,97 @@ class OptionsFacetQueryBuilder extends DefaultFacetQueryBuilder implements Facet
         $jsonFacetOptions = [
             'type' => 'terms',
             'field' => $facetConfiguration['field'],
-            'limit' => $facetConfiguration['limit'] > 0 ? (int)$facetConfiguration['limit'] : $configuration->getSearchFacetingFacetLimit(),
-            'mincount' => $facetConfiguration['mincount'] > 0 ? (int)$facetConfiguration['mincount'] : $configuration->getSearchFacetingMinimumCount(),
         ];
 
-        if (isset($facetConfiguration['sortBy'])) {
-            $sortingExpression = new SortingExpression();
-            $sorting = $facetConfiguration['sortBy'];
-            $direction = $facetConfiguration['sortDirection'];
-            $jsonFacetOptions['sort'] = $sortingExpression->getForJsonFacet($sorting, $direction);
+        $jsonFacetOptions['limit'] = $this->buildLimitForJson($facetConfiguration, $configuration);
+        $jsonFacetOptions['mincount'] = $this->buildMincountForJson($facetConfiguration, $configuration);
+
+        $sorting = $this->buildSortingForJson($facetConfiguration);
+        if (!empty($sorting)) {
+            $jsonFacetOptions['sort'] = $sorting;
         }
 
+        if (is_array($facetConfiguration['metrics.'])) {
+            foreach ($facetConfiguration['metrics.'] as $key => $value) {
+                $jsonFacetOptions['facet']['metrics_' . $key] = $value;
+            }
+        }
+
+        $excludeTags = $this->buildExcludeTagsForJson($facetConfiguration, $configuration);
+        if (!empty($excludeTags)) {
+            $jsonFacetOptions['domain']['excludeTags'] = $excludeTags;
+        }
+
+        $facetParameters['json.facet'][$facetConfiguration['field']] = $jsonFacetOptions;
+        return $facetParameters;
+    }
+
+    /**
+     * @param array $facetConfiguration
+     * @param TypoScriptConfiguration $configuration
+     * @return string
+     */
+    protected function buildExcludeTagsForJson(array $facetConfiguration, TypoScriptConfiguration $configuration)
+    {
         $isKeepAllOptionsActiveForSingleFacet = $facetConfiguration['keepAllOptionsOnSelection'] == 1;
         $isKeepAllOptionsActiveGlobalsAndCountsEnabled = $configuration->getSearchFacetingKeepAllFacetsOnSelection()
             && $configuration->getSearchFacetingCountAllFacetsForSelection();
 
         if ($isKeepAllOptionsActiveForSingleFacet || $isKeepAllOptionsActiveGlobalsAndCountsEnabled) {
-            $jsonFacetOptions['domain']['excludeTags'] = $facetConfiguration['field'];
+            return $facetConfiguration['field'];
         } else {
             // keepAllOptionsOnSelection globally active
             $facets = [];
             foreach ($configuration->getSearchFacetingFacets() as $facet) {
                 $facets[] = $facet['field'];
             }
-            $jsonFacetOptions['domain']['excludeTags'] = implode(',', $facets);
+            return implode(',', $facets);
         }
+    }
 
-        $facetParameters['json.facet'][$facetConfiguration['field']] = $jsonFacetOptions;
-        return $facetParameters;
+    /**
+     * @param array $facetConfiguration
+     * @param TypoScriptConfiguration $configuration
+     * @return int
+     */
+    protected function buildLimitForJson(array $facetConfiguration, TypoScriptConfiguration $configuration)
+    {
+        if (isset($facetConfiguration['limit'])) {
+            return (int)$facetConfiguration['limit'];
+        } elseif ($configuration->getSearchFacetingFacetLimit() > 0) {
+            return $configuration->getSearchFacetingFacetLimit();
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * @param array $facetConfiguration
+     * @param TypoScriptConfiguration $configuration
+     * @return int
+     */
+    protected function buildMincountForJson(array $facetConfiguration, TypoScriptConfiguration $configuration)
+    {
+        if (isset($facetConfiguration['mincount'])) {
+            return (int)$facetConfiguration['mincount'];
+        } elseif ($configuration->getSearchFacetingMinimumCount() > 0) {
+            return $configuration->getSearchFacetingMinimumCount();
+        } else {
+            return 1;
+        }
+    }
+
+    /**
+     * @param array $facetConfiguration
+     * @return string
+     */
+    protected function buildSortingForJson(array $facetConfiguration) {
+        if (isset($facetConfiguration['sortBy'])) {
+            $sortingExpression = new SortingExpression();
+            $sorting = $facetConfiguration['sortBy'];
+            $direction = $facetConfiguration['sortDirection'];
+            return $sortingExpression->getForJsonFacet($sorting, $direction);
+        }
+        return '';
     }
 }
