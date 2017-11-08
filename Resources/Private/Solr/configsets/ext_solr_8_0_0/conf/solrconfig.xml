@@ -501,6 +501,19 @@
 			<int name="autoDeletePeriodSeconds">60</int>
 			<str name="expirationFieldName">endtime</str>
 		</processor>
+
+		<processor class="org.apache.solr.update.processor.TikaLanguageIdentifierUpdateProcessorFactory">
+			<lst name="defaults">
+				<str name="langid.fl">content,abstract,description,title</str>
+				<str name="langid.langField">languageDetected</str>
+				<str name="langid.langsField">languagesDetected</str>
+				<str name="langid.fallback">none</str>
+				<str name="langid.overwrite">false</str>
+				<str name="langid.enforceSchema">false</str>
+				<str name="langid.threshold">0.8</str>
+			</lst>
+		</processor>
+
 		<processor class="solr.LogUpdateProcessorFactory"/>
 		<processor class="solr.RunUpdateProcessorFactory"/>
 	</updateRequestProcessorChain>
