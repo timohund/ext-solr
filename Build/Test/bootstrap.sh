@@ -54,7 +54,7 @@ echo "Using package path $TYPO3_PATH_PACKAGES"
 echo "Using web path $TYPO3_PATH_WEB"
 
 # Install TYPO3 sources
-composer require --dev typo3/cms="$TYPO3_VERSION"
+composer require --dev typo3/cms-core="$TYPO3_VERSION"
 
 # Restore composer.json
 git checkout composer.json
