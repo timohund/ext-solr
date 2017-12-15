@@ -39,6 +39,7 @@ matrix:
 before_install:
   - composer self-update
   - composer --version
+  - mysql -u root -e "SET GLOBAL sql_mode = '';"
   # resources for solr
   - sudo update-java-alternatives -s java-8-oracle
 
