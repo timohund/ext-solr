@@ -159,8 +159,8 @@ class Item
             $this->record = $fullRecord;
         }
 
-        $this->indexQueueIndexingPropertyRepository = isset($indexQueueIndexingPropertyRepository) ? $indexQueueIndexingPropertyRepository : GeneralUtility::makeInstance(IndexQueueIndexingPropertyRepository::class);
-        $this->queueItemRepository = isset($queueItemRepository) ? $queueItemRepository : GeneralUtility::makeInstance(QueueItemRepository::class);
+        $this->indexQueueIndexingPropertyRepository = $indexQueueIndexingPropertyRepository ?? GeneralUtility::makeInstance(IndexQueueIndexingPropertyRepository::class);
+        $this->queueItemRepository = $queueItemRepository ?? GeneralUtility::makeInstance(QueueItemRepository::class);
     }
 
     /**

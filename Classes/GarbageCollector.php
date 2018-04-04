@@ -59,7 +59,7 @@ class GarbageCollector extends AbstractDataHandlerListener implements SingletonI
     public function __construct(TCAService $TCAService = null)
     {
         parent::__construct();
-        $this->tcaService = is_null($TCAService) ? GeneralUtility::makeInstance(TCAService::class) : $TCAService;
+        $this->tcaService = $TCAService ?? GeneralUtility::makeInstance(TCAService::class);
     }
 
     /**
