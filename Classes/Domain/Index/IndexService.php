@@ -189,6 +189,7 @@ class IndexService
      *
      * @param Item $item An index queue item to index
      * @param TypoScriptConfiguration $configuration
+     * @throws \Exception
      * @return bool TRUE if the item was successfully indexed, FALSE otherwise
      */
     protected function indexItem(Item $item, TypoScriptConfiguration $configuration)
@@ -201,24 +202,25 @@ class IndexService
         $itemChangedDate = $item->getChanged();
         $itemChangedDateAfterIndex = 0;
 
-        $this->initializeHttpServerEnvironment($item);
-        $itemIndexed = $indexer->index($item);
+        try {
+            $this->initializeHttpServerEnvironment($item);
+            $itemIndexed = $indexer->index($item);
 
-        // update IQ item so that the IQ can determine what's been indexed already
-        if ($itemIndexed) {
-            $this->indexQueue->updateIndexTimeByItem($item);
-            $itemChangedDateAfterIndex = $item->getChanged();
+            // update IQ item so that the IQ can determine what's been indexed already
+            if ($itemIndexed) {
+                $this->indexQueue->updateIndexTimeByItem($item);
+                $itemChangedDateAfterIndex = $item->getChanged();
+            }
+
+            if ($itemChangedDateAfterIndex > $itemChangedDate && $itemChangedDateAfterIndex > time()) {
+                $this->indexQueue->setForcedChangeTimeByItem($item, $itemChangedDateAfterIndex);
+            }
+        } catch (\Exception $e) {
+            $this->restoreOriginalHttpHost($originalHttpHost);
+            throw $e;
         }
 
-        if ($itemChangedDateAfterIndex > $itemChangedDate && $itemChangedDateAfterIndex > time()) {
-            $this->indexQueue->setForcedChangeTimeByItem($item, $itemChangedDateAfterIndex);
-        }
-
-        if (!is_null($originalHttpHost)) {
-            $_SERVER['HTTP_HOST'] = $originalHttpHost;
-        } else {
-            unset($_SERVER['HTTP_HOST']);
-        }
+        $this->restoreOriginalHttpHost($originalHttpHost);
 
         // needed since TYPO3 7.5
         GeneralUtility::flushInternalRuntimeCaches();
@@ -295,8 +297,7 @@ class IndexService
         $hostFound = !empty($hosts[$rootpageId]);
 
         if (!$hostFound) {
-            $rootline = BackendUtility::BEgetRootLine($rootpageId);
-            $host = BackendUtility::firstDomainRecord($rootline);
+            $host = $item->getSite()->getDomain();
             $hosts[$rootpageId] = $host;
         }
 
@@ -304,5 +305,17 @@ class IndexService
 
         // needed since TYPO3 7.5
         GeneralUtility::flushInternalRuntimeCaches();
+    }
+
+    /**
+     * @param string|null $originalHttpHost
+     */
+    protected function restoreOriginalHttpHost($originalHttpHost)
+    {
+        if (!is_null($originalHttpHost)) {
+            $_SERVER['HTTP_HOST'] = $originalHttpHost;
+        } else {
+            unset($_SERVER['HTTP_HOST']);
+        }
     }
 }
