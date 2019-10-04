@@ -377,7 +377,7 @@ class PageIndexerTest extends IntegrationTest
      */
     protected function executePageIndexer($typo3ConfVars = [], $pageId = 1, $type = 0, $no_cache = '', $cHash = '', $_2 = null, $MP = '', $RDCT = '', $languageId = 0, $additionalConfigs = [])
     {
-        GeneralUtility::_GETset($languageId, 'L');
+        Util::setLanguageId($languageId);
         $GLOBALS['TT'] = $this->getMockBuilder(TimeTracker::class)->disableOriginalConstructor()->getMock();
 
         $config = [

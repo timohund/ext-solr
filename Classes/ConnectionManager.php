@@ -393,7 +393,8 @@ class ConnectionManager implements SingletonInterface
         $connection = [];
 
         $languageId = (int)$languageId;
-        GeneralUtility::_GETset($languageId, 'L');
+
+        Util::setLanguageId($languageId);
         $connectionKey = $rootPage['uid'] . '|' . $languageId;
 
         $pageSelect = GeneralUtility::makeInstance(PageRepository::class);
@@ -405,9 +406,9 @@ class ConnectionManager implements SingletonInterface
             $rootLine = [];
         }
 
+            /** @var ExtendedTemplateService $tmpl */
         $tmpl = GeneralUtility::makeInstance(ExtendedTemplateService::class);
         $tmpl->tt_track = false; // Do not log time-performance information
-        $tmpl->init();
         $tmpl->runThroughTemplates($rootLine); // This generates the constants/config + hierarchy info for the template.
 
         // fake micro TSFE to get correct condition parsing

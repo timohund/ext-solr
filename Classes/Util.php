@@ -30,9 +30,12 @@ use ApacheSolrForTypo3\Solr\System\Configuration\ConfigurationManager;
 use ApacheSolrForTypo3\Solr\System\Configuration\ConfigurationPageResolver;
 use ApacheSolrForTypo3\Solr\System\Configuration\ExtensionConfiguration;
 use ApacheSolrForTypo3\Solr\System\Configuration\TypoScriptConfiguration;
+use ApacheSolrForTypo3\Solr\System\Util\SiteUtility;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
+use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\RootlineUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use ApacheSolrForTypo3\Solr\System\Mvc\Frontend\Controller\OverriddenTypoScriptFrontendController;
@@ -262,7 +265,7 @@ class Util
     private static function getConfigurationFromExistingTSFE($pageId, $path, $language)
     {
         if (is_int($language)) {
-            GeneralUtility::_GETset($language, 'L');
+            static::setLanguageId($language);
         }
 
             /** @var $pageSelect PageRepository */
@@ -294,7 +297,7 @@ class Util
             /** @var $tmpl ExtendedTemplateService */
         $tmpl = GeneralUtility::makeInstance(ExtendedTemplateService::class);
         $tmpl->tt_track = false; // Do not log time-performance information
-        $tmpl->init();
+
         $tmpl->runThroughTemplates($rootLine); // This generates the constants/config + hierarchy info for the template.
         $tmpl->generateConfig();
 
@@ -333,17 +336,20 @@ class Util
         }
 
 
-        /** @var Context $context */
-        $context = GeneralUtility::makeInstance(Context::class);
-        $context->setAspect('language', GeneralUtility::makeInstance(LanguageAspect::class, $language));
-
         // needs to be set regardless if $GLOBALS['TSFE'] is loaded from cache
         // otherwise it is not guaranteed that the correct language id is used everywhere for this index cycle (e.g. Typo3QuerySettings)
-        GeneralUtility::_GETset($language, 'L');
+        static::setLanguageId($language);
 
         if (!isset($tsfeCache[$cacheId]) || !$useCache) {
+            if (SiteUtility::getIsSiteManagedSite($pageId)) {
+                /** @var SiteFinder $siteFinder */
+                $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+                $languageOrType = $siteFinder->getSiteByPageId($pageId)->getLanguageById($language);
+            } else {
+                $languageOrType = 0;
+            }
 
-            $GLOBALS['TSFE'] = GeneralUtility::makeInstance(OverriddenTypoScriptFrontendController::class, $GLOBALS['TYPO3_CONF_VARS'], $pageId, 0);
+            $GLOBALS['TSFE'] = GeneralUtility::makeInstance(OverriddenTypoScriptFrontendController::class, $GLOBALS['TYPO3_CONF_VARS'], $pageId, $languageOrType);
 
             // for certain situations we need to trick TSFE into granting us
             // access to the page in any case to make getPageAndRootline() work
@@ -358,9 +364,7 @@ class Util
             // restore gr_list
             $GLOBALS['TSFE']->gr_list = $groupListBackup;
 
-            $GLOBALS['TSFE']->initTemplate();
             $GLOBALS['TSFE']->forceTemplateParsing = true;
-            $GLOBALS['TSFE']->initFEuser();
             $GLOBALS['TSFE']->initUserGroups();
             //  $GLOBALS['TSFE']->getCompressedTCarray(); // seems to cause conflicts sometimes
 
@@ -528,6 +532,17 @@ class Util
     {
         $context = GeneralUtility::makeInstance(Context::class);
         return (int)$context->getPropertyFromAspect('language', 'id');
+    }
+
+    /**
+     * @param int $languageId
+     * @return int
+     */
+    public static function setLanguageId($languageId)
+    {
+        /** @var Context $context */
+        $context = GeneralUtility::makeInstance(Context::class);
+        $context->setAspect('language', GeneralUtility::makeInstance(LanguageAspect::class, $languageId));
     }
 
     /**

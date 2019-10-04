@@ -29,7 +29,6 @@ class TSFETestBootstrapper
         EidUtility::initLanguage();
 
         $TSFE->id = $id;
-        $TSFE->initFEuser();
         $TSFE->checkAlternativeIdMethods();
         $TSFE->clear_preview();
 
@@ -39,7 +38,6 @@ class TSFETestBootstrapper
             $result->addExceptions($e);
         }
 
-        $TSFE->initTemplate();
         $TSFE->getConfigArray();
         $TSFE->config = array_merge($TSFE->config, $config);
 

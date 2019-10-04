@@ -1064,7 +1064,7 @@ class SearchControllerTest extends AbstractFrontendControllerTest
      */
     public function canPassCustomSettingsToView()
     {
-        GeneralUtility::_GETset('q', '*');
+        $_GET['q'] = '*';
 
         $this->importDataSetFromFixture('can_render_search_customTemplate.xml');
         $GLOBALS['TSFE'] = $this->getConfiguredTSFE([], 1);
